@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель студента — Единый деканат</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-title">
+                <h1>Панель студента</h1>
+                <span class="role-badge student-badge">студент</span>
+            </div>
+            <a href="{{ url_for('logout') }}" class="logout-link">Выход</a>
+        </div>
+        
+        <div class="profile-card">
+            <h2>Информация о студенте</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Электронная почта</div>
+                    <div class="info-value">{{ user.email }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Фамилия Имя Отчество</div>
+                    <div class="info-value">{{ profile.full_name() if profile else '—' }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Номер зачётной книжки</div>
+                    <div class="info-value">{{ profile.record_book_id if profile else '—' }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Статус</div>
+                    <div class="info-value">{{ profile.student_status if profile else '—' }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="actions-card">
+            <h2>Доступные действия</h2>
+            <div class="actions-grid">
+                {% for action in actions %}
+                <a href="#" class="action-button">{{ action }}</a>
+                {% else %}
+                <p class="empty-message">Нет доступных действий</p>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="quick-actions-card">
+            <h2>Мои данные</h2>
+            <div class="actions-grid">
+                <a href="#" class="action-button secondary">Мои оценки</a>
+                <a href="#" class="action-button secondary">Мои долги</a>
+                <a href="#" class="action-button secondary">Расписание</a>
+                <a href="#" class="action-button secondary">Уведомления</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
