@@ -257,7 +257,7 @@ body::after {
 }
 
 .error-message::before {
-    content: "🌸";
+    content: "";
     margin-right: 8px;
     font-size: 0.9rem;
 }
@@ -490,4 +490,17 @@ h2::after {
     h2::after {
         display: none;
     }
+}
+
+.api-body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 450px;
+    margin: 0 auto;
 }

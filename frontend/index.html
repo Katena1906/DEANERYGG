@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Единый деканат</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="api-body">
+    <div id="app">
+        <!-- Форма входа -->
+        <div id="login-form" class="login-container">
+            <div class="login-card">
+                <h1>🌸Единый деканат </h1>
+                <p class="subtitle">Система управления учебным процессом и дедлайнами</p>
+                
+                <div id="error" class="error-message" style="display: none;"></div>
+                
+                <div class="form-group">
+                    <label>Электронная почта</label>
+                    <input type="email" id="email" placeholder="email@university.ru">
+                </div>
+                <div class="form-group">
+                    <label>Пароль</label>
+                    <input type="password" id="password" placeholder="••••••">
+                </div>
+                <button class="btn-primary" onclick="login()">Войти в систему </button>
+                
+            </div>
+        </div>
+
+        <!-- Дашборд -->
+        <div id="dashboard" class="container" style="display: none;">
+            <div class="header">
+                <div class="header-title">
+                    <h1>Единый деканат</h1>
+                    <span id="role-badge" class="role-badge"></span>
+                </div>
+                <button class="logout-link" onclick="logout()"> Выход</button>
+            </div>
+
+            <div class="profile-card">
+                <h2>Информация о пользователе</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Email</div>
+                        <div id="user-email" class="info-value"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">ФИО</div>
+                        <div id="user-fullname" class="info-value"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Роль</div>
+                        <div id="user-role" class="info-value"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-card">
+                <h2>Доступные действия</h2>
+                <div id="actions-list" class="actions-grid"></div>
+            </div>
+
+            <div id="content" class="quick-actions-card"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let token = localStorage.getItem('token');
+
+        async function login() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const errorDiv = document.getElementById('error');
+
+    if (!email || !password) {
+        errorDiv.style.display = 'block';
+        errorDiv.innerText = ' Пожалуйста, заполните все поля ';
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_URL}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        
+        const data = await res.json();
+
+        if (res.ok && data.token) {
+            localStorage.setItem('token', data.token);
+            token = data.token;
+            showDashboard();
+        } else {
+            errorDiv.style.display = 'block';
+            
+            // Показываем информацию о попытках, если есть
+            if (data.attempts_left !== undefined && data.attempts_left > 0) {
+                errorDiv.innerText = ` ${data.error} Осталось попыток: ${data.attempts_left} `;
+            } else if (data.locked) {
+                errorDiv.innerText = ` ${data.error} `;
+            } else {
+                errorDiv.innerText = data.error || 'Неверный email или пароль';
+            }
+        }
+    } catch (err) {
+        console.error('Login error:', err);
+        errorDiv.style.display = 'block';
+        errorDiv.innerText = 'Ошибка подключения к серверу. Убедитесь, что сервер запущен ';
+    }
+}
+        async function logout() {
+            localStorage.removeItem('token');
+            token = null;
+            document.getElementById('login-form').style.display = 'flex';
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        async function fetchAPI(endpoint) {
+            const res = await fetch(`${API_URL}${endpoint}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return res.json();
+        }
+
+        async function showDashboard() {
+            try {
+                const user = await fetchAPI('/me');
+                
+                document.getElementById('user-email').innerText = user.user.email;
+                document.getElementById('user-role').innerText = user.user.role;
+                document.getElementById('user-fullname').innerText = user.user.profile?.full_name || '—';
+                
+                const roleBadge = document.getElementById('role-badge');
+                roleBadge.innerText = user.user.role;
+                roleBadge.className = 'role-badge';
+                if (user.user.role === 'student') roleBadge.classList.add('student-badge');
+                else if (user.user.role === 'teacher') roleBadge.classList.add('teacher-badge');
+                else if (user.user.role === 'dean') roleBadge.classList.add('dean-badge');
+                else if (user.user.role === 'admin') roleBadge.classList.add('admin-badge');
+                
+                const actionsList = document.getElementById('actions-list');
+                actionsList.innerHTML = '';
+                if (user.available_actions && user.available_actions.length > 0) {
+                    for (let action of user.available_actions) {
+                        const btn = document.createElement('a');
+                        btn.href = '#';
+                        btn.className = 'action-button';
+                        btn.innerText = action;
+                        actionsList.appendChild(btn);
+                    }
+                } else {
+                    actionsList.innerHTML = '<p class="empty-message">Нет доступных действий</p>';
+                }
+                
+                const content = document.getElementById('content');
+                
+                if (user.user.role === 'student') {
+                    const grades = await fetchAPI('/grades');
+                    content.innerHTML = `
+                        <h2> Мои оценки</h2>
+                        <div class="info-grid">
+                            ${grades.grades && grades.grades.length > 0 ? grades.grades.map(g => `
+                                <div class="info-item">
+                                    <div class="info-label">Дисциплина ${g.discipline_id}</div>
+                                    <div class="info-value" style="font-size: 1.3rem; font-weight: bold;">${g.grade_value}</div>
+                                    <div class="info-label">${g.is_final ? 'Итоговая' : 'Промежуточная'}</div>
+                                </div>
+                            `).join('') : '<p class="empty-message">Нет оценок</p>'}
+                        </div>
+                    `;
+                } else if (user.user.role === 'teacher') {
+                    const students = await fetchAPI('/students');
+                    content.innerHTML = `
+                        <h2>Студенты</h2>
+                        <div class="info-grid">
+                            ${students.students && students.students.length > 0 ? students.students.map(s => `
+                                <div class="info-item">
+                                    <div class="info-label">${s.full_name}</div>
+                                    <div class="info-value">${s.email || '—'}</div>
+                                    <div class="info-label">Статус: ${s.status}</div>
+                                </div>
+                            `).join('') : '<p class="empty-message">Нет студентов</p>'}
+                        </div>
+                    `;
+                } else if (user.user.role === 'dean') {
+                    const debts = await fetchAPI('/debts');
+                    content.innerHTML = `
+                        <h2>Актуальные долги</h2>
+                        <div class="info-grid">
+                            ${debts.debts && debts.debts.length > 0 ? debts.debts.map(d => `
+                                <div class="info-item">
+                                    <div class="info-label">Студент ID: ${d.student_id}</div>
+                                    <div class="info-value">Дисциплина: ${d.discipline_id}</div>
+                                    <div class="info-label">Статус: ${d.debt_status}</div>
+                                </div>
+                            `).join('') : '<p class="empty-message">Нет активных долгов</p>'}
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <button class="action-button" onclick="alert('Функция формирования отчётов')">📊 Сформировать отчёт</button>
+                            <button class="action-button" onclick="alert('Функция управления приказами')">📄 Приказы</button>
+                        </div>
+                    `;
+                } else if (user.user.role === 'admin') {
+                    const stats = await fetchAPI('/admin/stats');
+                    content.innerHTML = `
+                        <h2>Статистика системы</h2>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-number">${stats.stats.users}</div>
+                                <div class="stat-label">пользователей</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">${stats.stats.students}</div>
+                                <div class="stat-label">студентов</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">${stats.stats.teachers}</div>
+                                <div class="stat-label">преподавателей</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">${stats.stats.faculties}</div>
+                                <div class="stat-label">факультетов</div>
+                            </div>
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">Активные долги</div>
+                                <div class="info-value">${stats.stats.active_debts}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Всего пересдач</div>
+                                <div class="info-value">${stats.stats.total_retakes}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Всего оценок</div>
+                                <div class="info-value">${stats.stats.total_grades}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('login-form').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+            } catch (err) {
+                console.error(err);
+                logout();
+            }
+        }
+
+        if (token) {
+            showDashboard();
+        }
+    </script>
+</body>
+</html>
