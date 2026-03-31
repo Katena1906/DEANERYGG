@@ -115,37 +115,29 @@ DB Browser for SQLite — это бесплатная программа с гр
 
 ```
 deanery/
-├── app.py                 # Главный файл (маршруты, сессии)
-├── requirements.txt       # Список зависимостей
-├── README.md              # Этот файл
+├── app.py                    # API-сервер (JWT, CORS, маршруты /api/*)
+├── requirements.txt          # Зависимости (Flask, SQLAlchemy, bcrypt, PyJWT, flask-cors)
+├── README.md                 # Документация
+│
+├── frontend/                 # Веб-интерфейс (отдельно от сервера)
+│   └── index.html            # Единая страница с логикой по ролям (JS + HTML)
 │
 ├── database/
 │   ├── __init__.py
-│   ├── db.py              # Подключение к БД
-│   ├── models.py          # Модели таблиц (SQLAlchemy)
-│   
+│   ├── db.py                 # Подключение к БД
+│   └── models.py             # Модели таблиц (User, Student, Teacher, Faculty, Grade, AcademicDebt, Retake...)
 │
 ├── services/
 │   ├── __init__.py
-│   ├── auth_service.py    # Аутентификация (логин + bcrypt)
-│   └── authz_service.py   # Авторизация (ACL проверка прав)
+│   ├── auth_service.py       # Аутентификация (bcrypt, блокировка, JWT)
+│   └── authz_service.py      # Авторизация (ACL, права по ролям)
 │
-├── templates/             # HTML-шаблоны
-│   ├── login.html         # Страница входа
-│   ├── dashboard.html     # Перенаправление по роли
-│   ├── admin_panel.html   # Панель администратора
-│   ├── dean_panel.html    # Панель деканата
-│   ├── teacher_panel.html # Панель преподавателя
-│   └── student_panel.html # Панель студента
+├── static/                   # Статические файлы (для фронтенда)
+│   ├── style.css             # Стили (розовая сакура)
+│   └── sakura-bg.gif         # Фоновое видео с сакурой
 │
-├── static/                # Статические файлы
-│   ├── style.css          # Стили (розовый, сакура)
-│   ├
-│   └── sakura-bg.gif      # Фоновое видео с сакурой
-│
-└── instance/              # База данных (создаётся автоматически)
-    └── university.db      # SQLite файл
-```
+└── instance/                 # База данных (создаётся автоматически)
+    └── university.db         # SQLite файл
 
 
 ### Полезные команды
