@@ -1,103 +1,99 @@
-
+# services/authz_service.py
 from database.models import User
 
+# Права доступа для каждой роли
 ROLE_PERMISSIONS = {
     'student': {
         'grades': ['read_own'],
-        'schedule': ['read'],
         'debts': ['read_own'],
-        'retakes': ['read_own'],
-        'notifications': ['read']
+        'deadlines': ['read_own'],
+        'schedule': ['read_own'],
+        'notifications': ['read_own']
     },
     'teacher': {
-        'groups': ['read'],
+        'grades': ['create', 'read'],
+        'debts': ['read'],
+        'deadlines': ['create', 'read'],
         'students': ['read'],
-        'grades': ['create', 'update'],
-        'retakes': ['read', 'create']
+        'schedule': ['read']
     },
     'dean': {
         'students': ['read_all'],
         'grades': ['read_all'],
-        'debts': ['read_all', 'manage'],
-        'retakes': ['read_all', 'manage'],
+        'debts': ['manage'],
+        'deadlines': ['manage'],
+        'events': ['create', 'read'],
         'reports': ['generate'],
-        'statistics': ['read']
+        'schedule': ['create']
     },
     'admin': {
         'users': ['create', 'read', 'update', 'delete'],
         'roles': ['manage'],
-        'faculty': ['manage'],
+        'statistics': ['read'],
         'system': ['full_access']
     }
 }
 
+ACTION_NAMES = {
+    # Студент (5 действий)
+    ('grades', 'read_own'): 'Мои оценки',
+    ('debts', 'read_own'): 'Мои долги',
+    ('deadlines', 'read_own'): 'Мои дедлайны',
+    ('schedule', 'read_own'): 'Расписание',
+    ('notifications', 'read_own'): 'Уведомления',
+    
+    # Преподаватель (6 действий)
+    ('grades', 'create'): 'Выставить оценки',
+    ('grades', 'read'): 'Просмотр оценок',
+    ('deadlines', 'create'): 'Создать дедлайн',
+    ('deadlines', 'read'): 'Контроль дедлайнов',
+    ('students', 'read'): 'Студенты',
+    
+    # Деканат (6 действий)
+    ('students', 'read_all'): 'Все студенты',
+    ('grades', 'read_all'): 'Успеваемость',
+    ('debts', 'manage'): 'Управление долгами',
+    ('deadlines', 'manage'): 'Контроль дедлайнов',
+    ('events', 'create'): 'Планирование',
+    ('reports', 'generate'): 'Отчеты',
+    
+    # Администратор (4 действия)
+    ('users', 'create'): 'Управление пользователями',
+    ('users', 'read'): 'Список пользователей',
+    ('roles', 'manage'): 'Управление ролями',
+    ('statistics', 'read'): 'Статистика системы'
+}
 
 def has_permission(user: User, resource: str, action: str) -> bool:
+    """Проверка наличия права у пользователя"""
     if not user:
         return False
-    role_perms = ROLE_PERMISSIONS.get(user.role, {})
-    if resource not in role_perms:
-        return False
-    return action in role_perms[resource]
-
-
-def get_user_permissions(user: User) -> dict:
-    if not user:
-        return {}
-    return ROLE_PERMISSIONS.get(user.role, {})
-
+    if user.role == 'admin':
+        return True
+    perms = ROLE_PERMISSIONS.get(user.role, {})
+    return resource in perms and action in perms[resource]
 
 def get_available_actions(user: User) -> list:
-    permissions = get_user_permissions(user)
+    """Получение списка доступных действий для пользователя"""
+    if not user:
+        return []
+    
     actions = []
     
-    # Человекочитаемые названия для каждого действия
-    action_names = {
-        ('grades', 'read_own'): 'Мои оценки',
-        ('grades', 'read_all'): 'Все оценки',
-        ('grades', 'create'): 'Выставить оценку',
-        ('grades', 'update'): 'Изменить оценку',
-        ('schedule', 'read'): 'Расписание',
-        ('debts', 'read_own'): 'Мои долги',
-        ('debts', 'read_all'): 'Все долги',
-        ('debts', 'manage'): 'Управление долгами',
-        ('retakes', 'read_own'): 'Мои пересдачи',
-        ('retakes', 'read_all'): 'Все пересдачи',
-        ('retakes', 'create'): 'Назначить пересдачу',
-        ('retakes', 'read'): 'Просмотреть пересдачи',
-        ('retakes', 'manage'): 'Управление пересдачами',
-        ('notifications', 'read'): 'Уведомления',
-        ('groups', 'read'): 'Мои группы',
-        ('students', 'read'): 'Студенты группы',
-        ('students', 'read_all'): 'Все студенты',
-        ('reports', 'generate'): 'Сформировать отчёты',
-        ('statistics', 'read'): 'Статистика',
-        ('users', 'create'): 'Создать пользователя',
-        ('users', 'read'): 'Список пользователей',
-        ('users', 'update'): 'Редактировать пользователя',
-        ('users', 'delete'): 'Удалить пользователя',
-        ('roles', 'manage'): 'Управление ролями',
-        ('faculty', 'manage'): 'Управление факультетами',
-        ('system', 'full_access'): 'Полный доступ к системе'
-    }
-    
-    for resource, acts in permissions.items():
-        for act in acts:
-            key = (resource, act)
-            if key in action_names:
-                actions.append(action_names[key])
-            else:
-                actions.append(f"{resource}:{act}")
+    if user.role == 'student':
+        actions = ['Мои оценки', 'Мои долги', 'Мои дедлайны', 'Расписание', 'Уведомления']
+    elif user.role == 'teacher':
+        actions = ['Выставить оценки', 'Просмотр оценок', 'Создать дедлайн', 
+                   'Контроль дедлайнов', 'Студенты']
+    elif user.role == 'dean':
+        actions = ['Все студенты', 'Успеваемость', 'Управление долгами', 
+                   'Контроль дедлайнов', 'Планирование', 'Отчеты']
+    elif user.role == 'admin':
+        actions = ['Управление пользователями', 'Список пользователей', 
+                   'Управление ролями', 'Статистика системы']
     
     return actions
 
-
-def get_role_info(user: User) -> dict:
-    if not user:
-        return {}
-    permissions = get_user_permissions(user)
-    return {
-        'role': user.role,
-        'resources_count': len(permissions),
-        'permissions': permissions
-    }
+def get_action_name(resource: str, action: str) -> str:
+    """Получение человекочитаемого названия действия"""
+    return ACTION_NAMES.get((resource, action), f"{resource}.{action}")

@@ -1,0 +1,58 @@
+<!-- templates/dean/panel.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель деканата — Единый деканат</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-title">
+                <h1>Панель деканата</h1>
+                <span class="role-badge dean-badge">деканат</span>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="logout-link">Выход</a>
+        </div>
+        
+        <div class="profile-card">
+            <h2>Информация о факультете</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Факультет</div>
+                    <div class="info-value">{{ profile.faculty_name if profile else '—' }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Декан</div>
+                    <div class="info-value">{{ profile.dean_full_name() if profile else '—' }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Электронная почта</div>
+                    <div class="info-value">{{ user.email }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="actions-card">
+            <h2>Доступные действия</h2>
+            <div class="actions-grid">
+                {% for action in actions %}
+                <a href="#" class="action-button">{{ action }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="quick-actions-card">
+            <h2>Быстрые ссылки</h2>
+            <div class="actions-grid">
+                <a href="#" class="action-button secondary">Все студенты</a>
+                <a href="#" class="action-button secondary">Управление долгами</a>
+                <a href="#" class="action-button secondary">Контроль дедлайнов</a>
+                <a href="#" class="action-button secondary">Сформировать отчеты</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

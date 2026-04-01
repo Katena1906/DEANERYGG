@@ -1,3 +1,4 @@
+#deanery/database/db.py
 from database.db import db
 from datetime import datetime
 
@@ -44,8 +45,27 @@ class Student(db.Model):
     def full_name(self):
         return f"{self.student_surname} {self.student_name} {self.student_patronymic or ''}".strip()
     
+    def get_group_name(self):
+        from database.models import StudentGroup
+        group = StudentGroup.query.get(self.group_id)
+        return group.group_name if group else f"Группа {self.group_id}"
+    
     def __repr__(self):
         return f"<Student(id={self.student_id}, name='{self.student_surname}')>"
+    
+class StudentGroup(db.Model):
+    __tablename__ = 'studentgroup'
+    
+    group_id = db.Column(db.Integer, primary_key=True)
+    group_name = db.Column(db.String(50), nullable=False)
+    enrollment_year = db.Column(db.Integer, nullable=False)
+    faculty_id = db.Column(db.Integer, db.ForeignKey('faculty.faculty_id'))
+    max_students = db.Column(db.Integer)
+    is_active = db.Column(db.Boolean, default=True)
+    curriculum_id = db.Column(db.Integer)
+    
+    def __repr__(self):
+        return f"<StudentGroup(id={self.group_id}, name='{self.group_name}')>"
 
 class Teacher(db.Model):
     __tablename__ = 'teacher'
@@ -83,9 +103,21 @@ class Faculty(db.Model):
     def dean_full_name(self):
         return f"{self.dean_surname} {self.dean_name} {self.dean_patronymic or ''}".strip()
     
+    def full_name(self):
+        return self.dean_full_name()
+    
     def __repr__(self):
         return f"<Faculty(id={self.faculty_id}, name='{self.faculty_name}')>"
 
+class Discipline(db.Model):
+    __tablename__ = 'discipline'
+    
+    discipline_id = db.Column(db.Integer, primary_key=True)
+    discipline_name = db.Column(db.String(100), nullable=False)
+    discipline_code = db.Column(db.String(20), unique=True)
+    
+    def __repr__(self):
+        return f"<Discipline(id={self.discipline_id}, name='{self.discipline_name}')>"
 
 
 # ============================================================
@@ -107,6 +139,45 @@ class Grade(db.Model):
     is_final = db.Column(db.Boolean, default=False)
     record_date = db.Column(db.DateTime, default=datetime.utcnow)
     teacher_comment = db.Column(db.Text)
+    
+    def get_numeric_grade(self):
+        """Преобразовать оценку в число для подсчёта среднего балла"""
+        grade_map = {
+            '5': 5, 'отлично': 5,
+            '4': 4, 'хорошо': 4,
+            '3': 3, 'удовлетворительно': 3,
+            '2': 2, 'неудовлетворительно': 2,
+            'зачет': 5, 'незачет': 2
+        }
+        return grade_map.get(self.grade_value.lower(), None)
+    
+    def is_satisfactory(self):
+        """Проверка, является ли оценка удовлетворительной"""
+        numeric = self.get_numeric_grade()
+        return numeric is not None and numeric >= 3
+    
+    def get_student_name(self):
+        from database.models import Student
+        student = Student.query.get(self.student_id)
+        return student.full_name() if student else '—'
+    
+    def get_student_group(self):
+        from database.models import Student, StudentGroup
+        student = Student.query.get(self.student_id)
+        if student and student.group_id:
+            group = StudentGroup.query.get(student.group_id)
+            return group.group_name if group else f"Группа {student.group_id}"
+        return '—'
+    
+    def get_discipline_name(self):
+        from database.models import Discipline
+        discipline = Discipline.query.get(self.discipline_id)
+        return discipline.discipline_name if discipline else f"Дисциплина {self.discipline_id}"
+    
+    def get_assessment_type_name(self):
+        from database.models import AssessmentType
+        atype = AssessmentType.query.get(self.assessment_type_id)
+        return atype.assessment_type_name if atype else f"Тип {self.assessment_type_id}"
     
     def __repr__(self):
         return f"<Grade(id={self.grade_id}, value='{self.grade_value}')>"
@@ -152,6 +223,7 @@ class AssessmentType(db.Model):
     assessment_type_id = db.Column(db.Integer, primary_key=True)
     assessment_type_name = db.Column(db.String(100), nullable=False, unique=True)
     description = db.Column(db.String(255))
+    grading_scale = db.Column(db.String(20), default='5-point')  # '5-point', 'pass/fail'
     
     def __repr__(self):
         return f"<AssessmentType(id={self.assessment_type_id}, name='{self.assessment_type_name}')>"

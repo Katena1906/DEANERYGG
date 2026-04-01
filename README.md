@@ -115,29 +115,72 @@ DB Browser for SQLite — это бесплатная программа с гр
 
 ```
 deanery/
-├── app.py                    # API-сервер (JWT, CORS, маршруты /api/*)
-├── requirements.txt          # Зависимости (Flask, SQLAlchemy, bcrypt, PyJWT, flask-cors)
-├── README.md                 # Документация
+├── app.py                          # Основной файл приложения
+├── requirements.txt                # Зависимости
+├── README.md                       # Документация
 │
-├── frontend/                 # Веб-интерфейс (отдельно от сервера)
-│   └── index.html            # Единая страница с логикой по ролям (JS + HTML)
-│
-├── database/
+├── blueprints/                     # Маршруты приложения(html)
 │   ├── __init__.py
-│   ├── db.py                 # Подключение к БД
-│   └── models.py             # Модели таблиц (User, Student, Teacher, Faculty, Grade, AcademicDebt, Retake...)
+│   ├── auth.py                     # Аутентификация (login, logout)
+│   ├── dashboard.py                # Дашборд (редирект по ролям)
+│   ├── student.py                  # Маршруты студента
+│   ├── teacher.py                  # Маршруты преподавателя
+│   ├── dean.py                     # Маршруты деканата
+│   └── admin.py                    # Маршруты администратора
 │
-├── services/
+├── database/                       # Работа с базой данных
 │   ├── __init__.py
-│   ├── auth_service.py       # Аутентификация (bcrypt, блокировка, JWT)
-│   └── authz_service.py      # Авторизация (ACL, права по ролям)
+│   ├── db.py                       # Инициализация SQLAlchemy
+│   └── models.py                   # Модели данных (User, Student, Teacher, 
+│                                   # Faculty, Group, Grade, AcademicDebt, 
+│                                   # Retake, Event, Deadline, Notification)
 │
-├── static/                   # Статические файлы (для фронтенда)
-│   ├── style.css             # Стили (розовая сакура)
-│   └── sakura-bg.gif         # Фоновое видео с сакурой
+├── decorators/                     # Декораторы
+│   ├── __init__.py
+│   ├── auth.py                     # login_required, role_required
+│   └── permissions.py              # permission_required
 │
-└── instance/                 # База данных (создаётся автоматически)
-    └── university.db         # SQLite файл
+├── services/                       # Бизнес-логика
+│   ├── __init__.py
+│   ├── auth_service.py             # Аутентификация (bcrypt, блокировка)
+│   ├── authz_service.py            # Права доступа (ROLE_PERMISSIONS, ACTION_NAMES)(ACL)
+│   └── data_service.py             # Работа с данными (статистика, группы, оценки)
+│
+├── templates/                      # HTML шаблоны
+│   ├── base.html                   # Базовый шаблон
+│   ├── login.html                  # Страница входа
+│   ├── dashboard.html              # Дашборд (редирект)
+│   │
+│   ├── student/                    # Шаблоны студента
+│   │   └── panel.html              # Панель студента
+│   │   ...
+│   │
+│   ├── teacher/                    # Шаблоны преподавателя
+│   │   └── panel.html              # Панель преподавателя
+│   │   ...
+│   │
+│   ├── dean/                       # Шаблоны деканата
+│   │   └── panel.html              # Панель деканата
+│   │   ...
+│   │
+│   ├── admin/                      # Шаблоны администратора
+│   │   ├── panel.html              # Панель администратора
+│   │   ...
+│   │   
+│   │   
+│   │   
+│   │
+│   └── errors/                     # Страницы ошибок
+│       ├── 403.html                # Доступ запрещен
+│       ├── 404.html                # Страница не найдена
+│       └── 500.html                # Внутренняя ошибка
+│
+├── static/                         # Статические файлы
+│   ├── style.css                   # Основные стили
+│   └── sakura-bg.gif               # Фоновое видео с сакурой
+│
+└── instance/                       # База данных (создается автоматически)
+    └── deanery.db                  # SQLite файл
 
 
 ### Полезные команды

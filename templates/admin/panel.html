@@ -1,0 +1,58 @@
+<!-- templates/admin/panel.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель администратора — Единый деканат</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-title">
+                <h1>Панель администратора</h1>
+                <span class="role-badge admin-badge">администратор</span>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="logout-link">Выход</a>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.users_count if stats else 0 }}</div>
+                <div class="stat-label">пользователей</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.students_count if stats else 0 }}</div>
+                <div class="stat-label">студентов</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.teachers_count if stats else 0 }}</div>
+                <div class="stat-label">преподавателей</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.faculties_count if stats else 0 }}</div>
+                <div class="stat-label">факультетов</div>
+            </div>
+        </div>
+        
+        <div class="actions-card">
+            <h2>Доступные действия</h2>
+            <div class="actions-grid">
+                {% for action in actions %}
+                <a href="#" class="action-button">{{ action }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="quick-actions-card">
+            <h2>Быстрые ссылки</h2>
+            <div class="actions-grid">
+                <a href="#" class="action-button secondary">Управление пользователями</a>
+                <a href="#" class="action-button secondary">Управление ролями</a>
+                <a href="#" class="action-button secondary">Статистика системы</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
