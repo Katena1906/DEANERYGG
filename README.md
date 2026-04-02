@@ -180,7 +180,7 @@ deanery/
 │   └── sakura-bg.gif               # Фоновое видео с сакурой
 │
 └── instance/                       # База данных (создается автоматически)
-    └── deanery.db                  # SQLite файл
+    └── university.db                  # SQLite файл
 
 
 ### Полезные команды
