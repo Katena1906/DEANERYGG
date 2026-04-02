@@ -1,0 +1,330 @@
+<!-- templates/admin/create_user.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создание пользователя — Единый деканат</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .radio-group {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            background: #fffafc;
+            border-radius: 2rem;
+            border: 1px solid #ffe0e8;
+            transition: all 0.2s;
+        }
+        .radio-option:hover {
+            background: #ffeef4;
+            border-color: #e8a7bd;
+        }
+        .radio-option input {
+            width: auto;
+            margin: 0;
+            cursor: pointer;
+        }
+        .dynamic-fields {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #fffafc;
+            border-radius: 1rem;
+            border-left: 3px solid #e8a7bd;
+        }
+        .error-message {
+            background: #ffeef4;
+            color: #d96c8e;
+            padding: 0.8rem;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #d96c8e;
+        }
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 0.8rem;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-title">
+                <h1>Создание пользователя</h1>
+                <span class="role-badge admin-badge">администратор</span>
+            </div>
+            <div class="header-links">
+                <a href="{{ url_for('admin.users') }}" class="back-link">Назад к списку</a>
+                <a href="{{ url_for('auth.logout') }}" class="logout-link">Выход</a>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="{{ category }}-message">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="form-card">
+            <h2>Создание учетной записи</h2>
+            
+            <form id="create-user-form" method="POST" action="{{ url_for('admin.create_user') }}">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="email">Электронная почта *</label>
+                        <input type="email" id="email" name="email" required 
+                               placeholder="example@university.ru">
+                        <span class="field-hint">Логин пользователя для входа</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Пароль *</label>
+                        <input type="password" id="password" name="password" required minlength="6">
+                        <span class="field-hint">Минимум 6 символов</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Роль пользователя *</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="role" value="student" required> Студент
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="role" value="teacher"> Преподаватель
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="role" value="dean"> Деканат
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="role" value="admin"> Администратор
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Поля для СТУДЕНТА -->
+                <div id="student-fields" class="dynamic-fields" style="display: none;">
+                    <h3 style="color: #c97a9a; margin-bottom: 1rem;">Данные студента</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="student_surname">Фамилия *</label>
+                            <input type="text" id="student_surname" name="student_surname" placeholder="Иванов">
+                        </div>
+                        <div class="form-group">
+                            <label for="student_name">Имя *</label>
+                            <input type="text" id="student_name" name="student_name" placeholder="Иван">
+                        </div>
+                        <div class="form-group">
+                            <label for="student_patronymic">Отчество</label>
+                            <input type="text" id="student_patronymic" name="student_patronymic" placeholder="Иванович">
+                        </div>
+                        <div class="form-group">
+                            <label for="record_book_id">Номер зачетной книжки *</label>
+                            <input type="text" id="record_book_id" name="record_book_id" placeholder="123456">
+                        </div>
+                        <div class="form-group">
+                            <label for="birth_date">Дата рождения *</label>
+                            <input type="date" id="birth_date" name="birth_date">
+                        </div>
+                        <div class="form-group">
+                            <label for="group_name">Название группы *</label>
+                            <input type="text" id="group_name" name="group_name" placeholder="ИС-21-01">
+                            <span class="field-hint">Группа должна существовать в системе</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="student_phone">Телефон</label>
+                            <input type="tel" id="student_phone" name="student_phone" placeholder="+7 (999) 123-45-67">
+                        </div>
+                        <div class="form-group">
+                            <label for="student_email_contact">Контактный email</label>
+                            <input type="email" id="student_email_contact" name="student_email_contact" placeholder="student@mail.ru">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Поля для ПРЕПОДАВАТЕЛЯ (без кафедры) -->
+                <div id="teacher-fields" class="dynamic-fields" style="display: none;">
+                    <h3 style="color: #c97a9a; margin-bottom: 1rem;">Данные преподавателя</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="teacher_surname">Фамилия *</label>
+                            <input type="text" id="teacher_surname" name="teacher_surname" placeholder="Петров">
+                        </div>
+                        <div class="form-group">
+                            <label for="teacher_name">Имя *</label>
+                            <input type="text" id="teacher_name" name="teacher_name" placeholder="Петр">
+                        </div>
+                        <div class="form-group">
+                            <label for="teacher_patronymic">Отчество</label>
+                            <input type="text" id="teacher_patronymic" name="teacher_patronymic" placeholder="Петрович">
+                        </div>
+                        <div class="form-group">
+                            <label for="teacher_birth_date">Дата рождения *</label>
+                            <input type="date" id="teacher_birth_date" name="teacher_birth_date">
+                        </div>
+                        <div class="form-group">
+                            <label for="teacher_email_contact">Контактный email *</label>
+                            <input type="email" id="teacher_email_contact" name="teacher_email_contact" placeholder="teacher@university.ru">
+                        </div>
+                        <div class="form-group">
+                            <label for="teacher_phone">Телефон</label>
+                            <input type="tel" id="teacher_phone" name="teacher_phone" placeholder="+7 (999) 123-45-67">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Поля для ДЕКАНАТА -->
+                <div id="dean-fields" class="dynamic-fields" style="display: none;">
+                    <h3 style="color: #c97a9a; margin-bottom: 1rem;">Данные факультета</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="faculty_name">Название факультета *</label>
+                            <input type="text" id="faculty_name" name="faculty_name" placeholder="Институт информационных технологий">
+                            <span class="field-hint">Факультет должен существовать в системе</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="dean_surname">Фамилия декана *</label>
+                            <input type="text" id="dean_surname" name="dean_surname" placeholder="Смирнова">
+                        </div>
+                        <div class="form-group">
+                            <label for="dean_name">Имя декана *</label>
+                            <input type="text" id="dean_name" name="dean_name" placeholder="Анна">
+                        </div>
+                        <div class="form-group">
+                            <label for="dean_patronymic">Отчество декана</label>
+                            <input type="text" id="dean_patronymic" name="dean_patronymic" placeholder="Владимировна">
+                        </div>
+                        <div class="form-group">
+                            <label for="faculty_phone">Телефон факультета</label>
+                            <input type="tel" id="faculty_phone" name="faculty_phone" placeholder="+7 (495) 123-45-67">
+                        </div>
+                        <div class="form-group">
+                            <label for="faculty_email">Email факультета</label>
+                            <input type="email" id="faculty_email" name="faculty_email" placeholder="faculty@university.ru">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Блок для администратора -->
+                <div id="admin-fields" class="dynamic-fields" style="display: none;">
+                    <div class="info-card">
+                        <p>Администратор создается без привязки к существующим записям</p>
+                        <span class="field-hint">Учетная запись администратора будет создана в системе</span>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Создать пользователя</button>
+                    <a href="{{ url_for('admin.users') }}" class="btn-secondary">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const roleRadios = document.querySelectorAll('input[name="role"]');
+        const studentFields = document.getElementById('student-fields');
+        const teacherFields = document.getElementById('teacher-fields');
+        const deanFields = document.getElementById('dean-fields');
+        const adminFields = document.getElementById('admin-fields');
+        
+        function hideAllFields() {
+            studentFields.style.display = 'none';
+            teacherFields.style.display = 'none';
+            deanFields.style.display = 'none';
+            adminFields.style.display = 'none';
+            
+            const allInputs = document.querySelectorAll('#student-fields input, #teacher-fields input, #dean-fields input');
+            allInputs.forEach(input => input.removeAttribute('required'));
+        }
+        
+        function setRequiredFields(container, required) {
+            const inputs = container.querySelectorAll('input');
+            inputs.forEach(input => {
+                if (required && input.getAttribute('type') !== 'hidden') {
+                    input.setAttribute('required', 'required');
+                } else {
+                    input.removeAttribute('required');
+                }
+            });
+        }
+        
+        roleRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                hideAllFields();
+                
+                switch(this.value) {
+                    case 'student':
+                        studentFields.style.display = 'block';
+                        setRequiredFields(studentFields, true);
+                        break;
+                    case 'teacher':
+                        teacherFields.style.display = 'block';
+                        setRequiredFields(teacherFields, true);
+                        break;
+                    case 'dean':
+                        deanFields.style.display = 'block';
+                        setRequiredFields(deanFields, true);
+                        break;
+                    case 'admin':
+                        adminFields.style.display = 'block';
+                        break;
+                }
+            });
+        });
+        
+        document.getElementById('create-user-form').addEventListener('submit', function(e) {
+            const selectedRole = document.querySelector('input[name="role"]:checked');
+            
+            if (!selectedRole) {
+                alert('Пожалуйста, выберите роль пользователя');
+                e.preventDefault();
+                return;
+            }
+            
+            const role = selectedRole.value;
+            let isValid = true;
+            
+            if (role === 'student') {
+                const groupName = document.getElementById('group_name')?.value;
+                const recordBook = document.getElementById('record_book_id')?.value;
+                
+                if (!groupName) {
+                    alert('Пожалуйста, укажите название группы');
+                    isValid = false;
+                }
+                if (!recordBook) {
+                    alert('Пожалуйста, укажите номер зачетной книжки');
+                    isValid = false;
+                }
+            }
+            
+            if (role === 'dean') {
+                const facultyName = document.getElementById('faculty_name')?.value;
+                if (!facultyName) {
+                    alert('Пожалуйста, укажите название факультета');
+                    isValid = false;
+                }
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

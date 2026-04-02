@@ -40,7 +40,17 @@
             <h2>Доступные действия</h2>
             <div class="actions-grid">
                 {% for action in actions %}
-                <a href="#" class="action-button">{{ action }}</a>
+                    {% if action == 'Управление пользователями' %}
+                    <a href="{{ url_for('admin.users') }}" class="action-button">{{ action }}</a>
+                    {% elif action == 'Список пользователей' %}
+                    <a href="{{ url_for('admin.users') }}" class="action-button">{{ action }}</a>
+                    {% elif action == 'Управление ролями' %}
+                    <a href="{{ url_for('admin.roles') }}" class="action-button">{{ action }}</a>
+                    {% elif action == 'Статистика системы' %}
+                    <a href="{{ url_for('admin.statistics') }}" class="action-button">{{ action }}</a>
+                    {% else %}
+                    <a href="#" class="action-button" onclick="showComingSoon('{{ action }}')">{{ action }}</a>
+                    {% endif %}
                 {% endfor %}
             </div>
         </div>
@@ -48,11 +58,17 @@
         <div class="quick-actions-card">
             <h2>Быстрые ссылки</h2>
             <div class="actions-grid">
-                <a href="#" class="action-button secondary">Управление пользователями</a>
-                <a href="#" class="action-button secondary">Управление ролями</a>
-                <a href="#" class="action-button secondary">Статистика системы</a>
+                <a href="{{ url_for('admin.users') }}" class="action-button secondary">Управление пользователями</a>
+                <a href="{{ url_for('admin.roles') }}" class="action-button secondary">Управление ролями</a>
+                <a href="{{ url_for('admin.statistics') }}" class="action-button secondary">Статистика системы</a>
             </div>
         </div>
     </div>
+
+    <script>
+        function showComingSoon(action) {
+            alert('Функция "' + action + '" будет доступна в следующей версии!');
+        }
+    </script>
 </body>
 </html>

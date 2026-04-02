@@ -1,14 +1,41 @@
-
+# .gitignore
+# Виртуальное окружение
 venv/
-__pycache__/
-*.pyc
-
+env/
 .env
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+
+# IDE
 .vscode/
 .idea/
+*.swp
+*.swo
 
+# Логи
 *.log
 
+# Файлы окружения
+.env
+.env.local
+
+# OS
 .DS_Store
 Thumbs.db
+
+
+# Тесты
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Распределенные файлы
+*.egg-info/
+dist/
+build/

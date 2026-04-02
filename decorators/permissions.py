@@ -7,11 +7,6 @@ from services.authz_service import has_permission
 def permission_required(resource, action):
     """
     Декоратор: проверяет, что у пользователя есть указанное право.
-    
-    Использование:
-        @permission_required('grades', 'create')
-        def create_grade():
-            ...
     """
     def decorator(f):
         @wraps(f)

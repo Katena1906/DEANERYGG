@@ -1,4 +1,4 @@
-
+<!-- templates/student/panel.html -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -47,7 +47,7 @@
             <h2>Доступные действия</h2>
             <div class="actions-grid">
                 {% for action in actions %}
-                <a href="#" class="action-button">{{ action }}</a>
+                <a href="#" class="action-button" onclick="showComingSoon('{{ action }}')">{{ action }}</a>
                 {% endfor %}
             </div>
         </div>
@@ -55,10 +55,17 @@
         <div class="quick-actions-card">
             <h2>Быстрые ссылки</h2>
             <div class="actions-grid">
-                <a href="#" class="action-button secondary">Мои оценки</a>
-                <a href="#" class="action-button secondary">Мои долги</a>
+                <a href="#" class="action-button secondary" onclick="showComingSoon('Мои оценки')">Мои оценки</a>
+                <a href="#" class="action-button secondary" onclick="showComingSoon('Мои долги')">Мои долги</a>
+                <a href="#" class="action-button secondary" onclick="showComingSoon('Уведомления')">Уведомления</a>
             </div>
         </div>
     </div>
+
+    <script>
+        function showComingSoon(action) {
+            alert('Функция "' + action + '" будет доступна в следующей версии!');
+        }
+    </script>
 </body>
 </html>

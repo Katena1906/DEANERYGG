@@ -7,7 +7,6 @@ auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    """Страница входа"""
     # Если уже авторизован, перенаправляем на дашборд
     if 'user_id' in session:
         return redirect(url_for('dashboard.index'))
@@ -46,12 +45,10 @@ def login():
 
 @auth_bp.route('/logout')
 def logout():
-    """Выход из системы"""
     session.clear()
     flash('Вы вышли из системы', 'info')
     return redirect(url_for('auth.login'))
 
 @auth_bp.route('/login-page')
 def login_page():
-    """Алиас для страницы входа (используется в декораторах)"""
     return redirect(url_for('auth.login'))

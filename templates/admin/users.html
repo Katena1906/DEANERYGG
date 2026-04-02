@@ -1,0 +1,273 @@
+<!-- templates/admin/users.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление пользователями — Единый деканат</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Стили для тегов ролей */
+        .role-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            color: white;
+        }
+        .role-tag-student {
+            background: #e8a7bd;
+        }
+        .role-tag-teacher {
+            background: #e8a7bd;
+        }
+        .role-tag-dean {
+            background: #e8a7bd;
+        }
+        .role-tag-admin {
+            background: #e8a7bd;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .badge-current {
+            background: #e8a7bd;
+            color: white;
+            margin-left: 8px;
+        }
+        
+        .btn-danger {
+            background: #ffe0e0;
+            color: #d96c6c;
+            border: none;
+            cursor: pointer;
+            border-radius: 1.5rem;
+            transition: all 0.2s;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.8rem;
+        }
+        .btn-danger:hover {
+            background: #d96c6c;
+            color: white;
+        }
+        .modal .btn-danger {
+            padding: 0.6rem 1.2rem;
+            border-radius: 2rem;
+        }
+        .modal .btn-secondary {
+            background: #f0f0f0;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 2rem;
+            cursor: pointer;
+        }
+        .modal .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        .data-table td {
+            vertical-align: middle;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        .stats-summary {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .info-card {
+            background: #fffafc;
+            padding: 1rem;
+            border-radius: 1rem;
+            margin-top: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-title">
+                <h1>Управление пользователями</h1>
+                <span class="role-badge admin-badge">администратор</span>
+            </div>
+            <div class="header-links">
+                <a href="{{ url_for('admin.panel') }}" class="back-link">Назад</a>
+                <a href="{{ url_for('auth.logout') }}" class="logout-link">Выход</a>
+            </div>
+        </div>
+
+        <div class="form-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin-bottom: 0;">Список пользователей</h2>
+                <a href="{{ url_for('admin.create_user') }}" class="btn-primary" style="width: auto; padding: 0.6rem 1.2rem;">+ Создать пользователя</a>
+            </div>
+            
+            <!-- Поиск -->
+            <div style="margin-bottom: 1.5rem;">
+                <input type="text" id="search-users" placeholder="Поиск по email или роли..." 
+                       style="width: 100%; max-width: 300px; padding: 0.6rem 1rem; border: 1.5px solid #ffe0e8; border-radius: 2rem;">
+            </div>
+            
+            <!-- Таблица пользователей -->
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Email</th>
+                            <th>Роль</th>
+                            <th>Связанный ID</th>
+                            <th>Создан</th>
+                            <th>Последний вход</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        {% for u in users %}
+                        <tr>
+                            <td>{{ u.user_id }}</td>
+                            <td>
+                                {{ u.email }}
+                                {% if u.user_id == session.user_id %}
+                                <span class="badge badge-current">Вы</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if u.role == 'student' %}
+                                <span class="role-tag role-tag-student">Студент</span>
+                                {% elif u.role == 'teacher' %}
+                                <span class="role-tag role-tag-teacher">Преподаватель</span>
+                                {% elif u.role == 'dean' %}
+                                <span class="role-tag role-tag-dean">Деканат</span>
+                                {% elif u.role == 'admin' %}
+                                <span class="role-tag role-tag-admin">Администратор</span>
+                                {% else %}
+                                <span class="role-tag">{{ u.role }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if u.related_id %}
+                                {{ u.related_id }}
+                                {% else %}
+                                —
+                                {% endif %}
+                            </td>
+                            <td>{{ u.created_at.strftime('%d.%m.%Y') if u.created_at else '—' }}</td>
+                            <td>{{ u.last_login.strftime('%d.%m.%Y %H:%M') if u.last_login else '—' }}</td>
+                            <td style="white-space: nowrap;">
+                                <a href="{{ url_for('admin.edit_user', user_id=u.user_id) }}" class="btn-small">Редактировать</a>
+                                {% if u.user_id != session.user_id %}
+                                <button onclick="deleteUser('{{ u.user_id }}')" class="btn-small btn-danger">Удалить</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 3rem;">
+                                <p>Нет зарегистрированных пользователей</p>
+                                <a href="{{ url_for('admin.create_user') }}" class="btn-primary" style="margin-top: 1rem; display: inline-block;">Создать первого пользователя</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Информация о количестве -->
+            <div class="info-card">
+                <div class="stats-summary">
+                    <div><strong>Всего пользователей:</strong> {{ users|length }}</div>
+                    <div><strong>Студентов:</strong> {{ users|selectattr('role', 'equalto', 'student')|list|length }}</div>
+                    <div><strong>Преподавателей:</strong> {{ users|selectattr('role', 'equalto', 'teacher')|list|length }}</div>
+                    <div><strong>Деканат:</strong> {{ users|selectattr('role', 'equalto', 'dean')|list|length }}</div>
+                    <div><strong>Администраторов:</strong> {{ users|selectattr('role', 'equalto', 'admin')|list|length }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Подтверждение удаления</h3>
+            <p>Вы уверены, что хотите удалить этого пользователя?</p>
+            <p style="color: #d96c8e; font-size: 14px; margin-top: 10px;">Это действие нельзя отменить.</p>
+            <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem;">
+                <button id="confirm-delete" class="btn-danger" style="padding: 0.6rem 1.2rem;">Удалить</button>
+                <button id="cancel-delete" class="btn-secondary" style="padding: 0.6rem 1.2rem;">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let userIdToDelete = null;
+        
+        function deleteUser(userId) {
+            userIdToDelete = userId;
+            const modal = document.getElementById('delete-modal');
+            modal.style.display = 'flex';
+        }
+        
+        document.getElementById('confirm-delete')?.addEventListener('click', function() {
+            if (userIdToDelete) {
+                fetch(`/admin/users/${userIdToDelete}/delete`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json'
+                    }
+                }).then(response => {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        alert('Ошибка при удалении пользователя');
+                        document.getElementById('delete-modal').style.display = 'none';
+                    }
+                }).catch(error => {
+                    console.error('Error:', error);
+                    alert('Ошибка при удалении пользователя');
+                    document.getElementById('delete-modal').style.display = 'none';
+                });
+            }
+        });
+        
+        document.getElementById('cancel-delete')?.addEventListener('click', function() {
+            document.getElementById('delete-modal').style.display = 'none';
+            userIdToDelete = null;
+        });
+        
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('delete-modal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+                userIdToDelete = null;
+            }
+        });
+        
+        const searchInput = document.getElementById('search-users');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = document.querySelectorAll('#users-table-body tr');
+                
+                rows.forEach(row => {
+                    const email = row.cells[1]?.textContent.toLowerCase() || '';
+                    const role = row.cells[2]?.textContent.toLowerCase() || '';
+                    const id = row.cells[0]?.textContent || '';
+                    
+                    if (email.includes(searchTerm) || role.includes(searchTerm) || id.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>

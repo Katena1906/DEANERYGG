@@ -9,7 +9,6 @@ from sqlalchemy import func, and_
 from datetime import datetime
 
 def get_student_with_group(student_id: int) -> dict:
-    """Получение студента с названием группы"""
     student = Student.query.get(student_id)
     if not student:
         return None
@@ -26,7 +25,6 @@ def get_student_with_group(student_id: int) -> dict:
     }
 
 def get_student_grades(student_id: int, limit: int = None) -> list:
-    """Получение оценок студента"""
     query = Grade.query.filter_by(student_id=student_id).order_by(Grade.record_date.desc())
     
     if limit:
@@ -48,7 +46,6 @@ def get_student_grades(student_id: int, limit: int = None) -> list:
     return result
 
 def get_student_debts(student_id: int, active_only: bool = True) -> list:
-    """Получение долгов студента"""
     query = AcademicDebt.query.filter_by(student_id=student_id)
     
     if active_only:
@@ -69,7 +66,6 @@ def get_student_debts(student_id: int, active_only: bool = True) -> list:
     return result
 
 def get_grade_with_details(grade_id: int) -> dict:
-    """Получение оценки с названиями дисциплины и типа контроля"""
     grade = Grade.query.get(grade_id)
     if not grade:
         return None
@@ -89,7 +85,6 @@ def get_grade_with_details(grade_id: int) -> dict:
     }
 
 def create_grade_with_debt(data: dict) -> Grade:
-    """Создание оценки и автоматическое создание долга при неудовлетворительной оценке"""
     grade = Grade(
         student_id=data['student_id'],
         discipline_id=data['discipline_id'],
@@ -121,7 +116,6 @@ def create_grade_with_debt(data: dict) -> Grade:
     return grade
 
 def close_debt_with_retake(debt_id: int, grade_value: str, teacher_id: int = None) -> Retake:
-    """Закрытие долга с созданием пересдачи и новой оценки"""
     debt = AcademicDebt.query.get(debt_id)
     if not debt or not debt.is_active:
         raise ValueError("Долг не найден или уже закрыт")
@@ -209,7 +203,6 @@ def get_faculty_stats(faculty_id: int) -> dict:
     }
 
 def get_system_statistics() -> dict:
-    """Получение общей статистики системы"""
     from database.models import User, Student, Teacher, Faculty, StudentGroup, Discipline, Grade, AcademicDebt, Retake
     from sqlalchemy import func, cast, Float
     
@@ -233,7 +226,6 @@ def get_system_statistics() -> dict:
         'avg_grade': None
     }
     
-    # Вычисляем средний балл только для числовых оценок
     numeric_grades = Grade.query.filter(
         Grade.grade_value.in_(['2', '3', '4', '5'])
     ).all()

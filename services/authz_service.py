@@ -7,7 +7,6 @@ ROLE_PERMISSIONS = {
         'grades': ['read_own'],
         'debts': ['read_own'],
         'deadlines': ['read_own'],
-        'schedule': ['read_own'],
         'notifications': ['read_own']
     },
     'teacher': {
@@ -35,21 +34,17 @@ ROLE_PERMISSIONS = {
 }
 
 ACTION_NAMES = {
-    # Студент (5 действий)
     ('grades', 'read_own'): 'Мои оценки',
     ('debts', 'read_own'): 'Мои долги',
     ('deadlines', 'read_own'): 'Мои дедлайны',
-    ('schedule', 'read_own'): 'Расписание',
     ('notifications', 'read_own'): 'Уведомления',
     
-    # Преподаватель (6 действий)
     ('grades', 'create'): 'Выставить оценки',
     ('grades', 'read'): 'Просмотр оценок',
     ('deadlines', 'create'): 'Создать дедлайн',
     ('deadlines', 'read'): 'Контроль дедлайнов',
     ('students', 'read'): 'Студенты',
     
-    # Деканат (6 действий)
     ('students', 'read_all'): 'Все студенты',
     ('grades', 'read_all'): 'Успеваемость',
     ('debts', 'manage'): 'Управление долгами',
@@ -57,7 +52,6 @@ ACTION_NAMES = {
     ('events', 'create'): 'Планирование',
     ('reports', 'generate'): 'Отчеты',
     
-    # Администратор (4 действия)
     ('users', 'create'): 'Управление пользователями',
     ('users', 'read'): 'Список пользователей',
     ('roles', 'manage'): 'Управление ролями',
@@ -65,7 +59,6 @@ ACTION_NAMES = {
 }
 
 def has_permission(user: User, resource: str, action: str) -> bool:
-    """Проверка наличия права у пользователя"""
     if not user:
         return False
     if user.role == 'admin':
@@ -74,14 +67,13 @@ def has_permission(user: User, resource: str, action: str) -> bool:
     return resource in perms and action in perms[resource]
 
 def get_available_actions(user: User) -> list:
-    """Получение списка доступных действий для пользователя"""
     if not user:
         return []
     
     actions = []
     
     if user.role == 'student':
-        actions = ['Мои оценки', 'Мои долги', 'Мои дедлайны', 'Расписание', 'Уведомления']
+        actions = ['Мои оценки', 'Мои долги', 'Мои дедлайны', 'Уведомления']
     elif user.role == 'teacher':
         actions = ['Выставить оценки', 'Просмотр оценок', 'Создать дедлайн', 
                    'Контроль дедлайнов', 'Студенты']
@@ -95,5 +87,4 @@ def get_available_actions(user: User) -> list:
     return actions
 
 def get_action_name(resource: str, action: str) -> str:
-    """Получение человекочитаемого названия действия"""
     return ACTION_NAMES.get((resource, action), f"{resource}.{action}")
